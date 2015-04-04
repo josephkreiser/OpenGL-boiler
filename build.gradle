@@ -1,0 +1,49 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "OpenGLTest"
+sourceCompatibility = 1.7
+
+String os = System.properties['os.name'].toLowerCase()
+if (project.hasProperty('os')) {
+    os = project.os.toLowerCase()
+} else {
+    if (os.contains("windows"))
+        os = "windows"
+    if (os.contains("linux"))
+        os = "linux"
+    if (os.contains("osx"))
+        os = "osx"
+}
+
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.9.13'
+    compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.13'
+    compile group: 'org.lwjgl.lwjgl', name: 'lwjgl', version: '2.+'
+}
+
+// Add a task to copy the native libraries to the $buildDir/natives/$os directory
+task ('installNatives', type: Copy) {
+    def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts.findAll { it.classifier == "natives-$os" }
+    artifacts.each {
+        from zipTree(it.file)
+    }
+    into "$buildDir/natives/$os"
+}
+
+// Add the natives lib to the java.library.path for testing
+run {
+    systemProperty "java.library.path", "$buildDir/natives/$os"
+}
+
+run.dependsOn 'installNatives'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}

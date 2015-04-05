@@ -8,6 +8,7 @@ String os = System.properties['os.name'].toLowerCase()
 if (project.hasProperty('os')) {
     os = project.os.toLowerCase()
 } else {
+    println "$os"
     if (os.contains("windows"))
         os = "windows"
     if (os.contains("linux"))

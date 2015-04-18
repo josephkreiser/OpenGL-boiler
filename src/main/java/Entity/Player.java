@@ -13,7 +13,6 @@ import static org.lwjgl.opengl.GL11.*;
 public class Player implements IEntity {
     double pos_x, pos_y;
     double speed_x, speed_y;
-    boolean on_ground;
     int ticks_in_air;
     public Texture texture;
 
@@ -21,7 +20,6 @@ public class Player implements IEntity {
     public Player() {
         pos_x = Config.WIDTH/2;
         pos_y = Config.HEIGHT/2;
-        on_ground = false;
         ticks_in_air = 0;
 
         speed_x = 0;
@@ -70,7 +68,7 @@ public class Player implements IEntity {
 
     @Override
     public boolean is_entity_on_ground() {
-        return on_ground;
+        return pos_y <= 0;
     }
 
     @Override
@@ -83,15 +81,13 @@ public class Player implements IEntity {
         pos_x += speed_x;
         pos_y += speed_y;
 
-        if (pos_y < 200) {
-            pos_y = 200;
+        if (pos_y <= Config.GROUND_LEVEL_Y) {
+            pos_y = Config.GROUND_LEVEL_Y;
             speed_y = 0;
             ticks_in_air = 0;
-            //on_ground = true;
         } else {
             speed_y -= delta;
             ticks_in_air++;
-            //on_ground = false;
         }
 
         if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
@@ -103,6 +99,7 @@ public class Player implements IEntity {
         if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
             //System.out.println(ticks_in_air);
             //speed_y += (delta/(Config.FPS*(ticks_in_air+1)));
+            speed_y += delta;
         }
 
         if (!(Keyboard.isKeyDown(Keyboard.KEY_LEFT) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT))) {

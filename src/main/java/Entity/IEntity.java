@@ -1,5 +1,7 @@
 package Entity;
 
+import java.io.IOException;
+
 public interface IEntity {
     public double get_x_pos();
     public double get_y_pos();
@@ -13,7 +15,7 @@ public interface IEntity {
 
     public boolean is_entity_on_ground();
 
-    public void init();
+    public void init() throws IOException;
 
     public void tick(double delta);
 

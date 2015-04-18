@@ -15,7 +15,7 @@ public interface IEntity {
 
     public void init();
 
-    public void tick();
+    public void tick(double delta);
 
     public void draw();
 }

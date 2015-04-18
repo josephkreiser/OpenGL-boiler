@@ -2,11 +2,13 @@ import Config.Config;
 import Entity.IEntity;
 import Entity.IGeometry;
 import Entity.Player;
+import Texture.Util;
+
 import org.lwjgl.LWJGLException;
-import org.lwjgl.Sys;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -15,30 +17,55 @@ public class OpenGLTest {
     ArrayList<IEntity> EntityList;
     ArrayList<IGeometry> GeometryList;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new OpenGLTest();
     }
 
-    public OpenGLTest() {
+    public OpenGLTest() throws IOException {
         try {
             Display.setDisplayMode(new DisplayMode(Config.WIDTH, Config.HEIGHT));
             Display.create();
+
+            // This was copy pasted from here: http://ninjacave.com/slickutil1
+            glEnable(GL_TEXTURE_2D);
+            //glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
             //init level
             EntityList = new ArrayList<IEntity>();
             EntityList.add(new Player());
 
-            long lastTime = Sys.getTime();
-            int nbFrames = 0;
-            int real_fps = Config.FPS;
+            long checkIn = System.nanoTime();
+            long lastTime = System.nanoTime();
+            long delta;
+
+            final long ONE_SECOND = 1000000000;
+            final long DELTA_SCALE = 1000000;
+
+            Util.init();
+
+
 
             while(!Display.isCloseRequested()) {
+                // Obtain Delta
+                delta = System.nanoTime() - lastTime;
+                lastTime = System.nanoTime();
+                if (delta < 0) {
+                    delta += Long.MAX_VALUE;
+                }
+
+                if (System.nanoTime() > checkIn) {
+                    System.out.println("FPS: " + ONE_SECOND/delta + " - Scaled Delta: " + (float)delta/DELTA_SCALE);
+                    checkIn += ONE_SECOND;
+                }
+
                 //init
                 setCamera();
                 drawBackground();
 
                 for(IEntity e : EntityList) {
-                    e.tick();
+                    e.tick((float)delta/DELTA_SCALE);
                 }
 
                 for(IEntity e : EntityList) {
@@ -46,17 +73,7 @@ public class OpenGLTest {
                 }
 
                 Display.update();
-                Display.sync(Config.FPS);
-
-                // Measure speed
-                nbFrames++;
-                if (Sys.getTime() - lastTime >= 1000) {
-                    // printf and reset timer
-                    System.out.println(nbFrames);
-                    real_fps = nbFrames;
-                    nbFrames = 0;
-                    lastTime += 1000;
-                }
+                Display.sync(240);
             }
 
             Display.destroy();
@@ -66,6 +83,8 @@ public class OpenGLTest {
     }
 
     private void setCamera() {
+
+
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT);
 

@@ -2,6 +2,7 @@ package Entity;
 
 import Config.Config;
 import org.lwjgl.input.Keyboard;
+import org.newdawn.slick.Color;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -72,7 +73,7 @@ public class Player implements IEntity {
     }
 
     @Override
-    public void tick() {
+    public void tick(double delta) {
         pos_x += speed_x;
         pos_y += speed_y;
 
@@ -82,35 +83,37 @@ public class Player implements IEntity {
             ticks_in_air = 0;
             //on_ground = true;
         } else {
-            speed_y -= 60.0/Config.FPS;
+            speed_y -= delta;
             ticks_in_air++;
             //on_ground = false;
         }
 
         if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
-            speed_x -= 360.0/Config.FPS;
+            speed_x -= 0.1*delta;
         }
         if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
-            speed_x += 360.0/Config.FPS;
+            speed_x += 0.1*delta;
         }
         if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
             //System.out.println(ticks_in_air);
-            speed_y += (480.0/(Config.FPS*(ticks_in_air+1)));
+            //speed_y += (delta/(Config.FPS*(ticks_in_air+1)));
         }
 
         if (!(Keyboard.isKeyDown(Keyboard.KEY_LEFT) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT))) {
             if (speed_x != 0)
-                speed_x += speed_x > 0 ? -180.0/Config.FPS : 180.0/Config.FPS;
+                speed_x *= Math.pow(.998, delta);
         }
 
-        if (speed_x > 360.0/Config.FPS)
-            speed_x = 360.0/Config.FPS;
-        if (speed_x < -360.0/Config.FPS)
-            speed_x = -360.0/Config.FPS;
-        if (speed_y > 720.0/Config.FPS)
-            speed_y = 720.0/Config.FPS;
-        if (speed_y < -720.0/Config.FPS)
-            speed_y = -720.0/Config.FPS;
+
+        if (speed_x > 0.5*delta)
+            speed_x = 0.5*delta;
+        if (speed_x < -0.5*delta)
+            speed_x = -0.5*delta;
+        if (speed_y > 0.5*delta)
+            speed_y = 0.5*delta;
+        if (speed_y < -0.5*delta)
+            speed_y = -0.5*delta;
+
     }
 
     @Override
@@ -120,13 +123,20 @@ public class Player implements IEntity {
         //Move the frame over
         glTranslated(pos_x, pos_y, 0);
 
+
+        Texture.Util.texture.bind(); // or GL11.glBind(texture.getTextureID());
+
         glBegin(GL_QUADS);
-        glColor3d(1.0, 0, 1.0);
-        glVertex2d(-8, 0);
-        glVertex2d(8, 0);
-        glVertex2d(8, 16);
-        glVertex2d(-8, 16);
+        glTexCoord2f(0, 0);
+        glVertex2f(0, 0);
+        glTexCoord2f(1, 0);
+        glVertex2f(Texture.Util.texture.getTextureWidth(),0);
+        glTexCoord2f(1,1);
+        glVertex2f(Texture.Util.texture.getTextureWidth(), Texture.Util.texture.getTextureHeight());
+        glTexCoord2f(0,1);
+        glVertex2f(0, Texture.Util.texture.getTextureHeight());
         glEnd();
+
 
         glPopMatrix();
     }
